@@ -17,11 +17,31 @@ const schema = buildSchema(`
     height: pokeHeight
     fleeRate: Float
     evolutionRequirements: pokeEvolutionRequirements
+    evolutions:[pokeEvolutions]
+    maxCP: Int
+    maxHP: Int
+    attacks:pokeAttacks
   }
-  
+
+  type Attacks{
+    fast: [attributesOfAttack]
+    special: [attributesOfAttack]
+  }
+
+  type data{
+    Pokemon:[Pokemon]
+    attacks:Attacks
+    types:[String]
+  }
+
   type Query {
     Pokemons: [Pokemon]
-    Pokemon(name: String!): Pokemon
+    Types: [String]
+    Attacks: Attacks
+    Pokemon(name: String,id: String): Pokemon
+    Attack(type: String): [attributesOfAttack]
+    Type(type: String):data
+    GetAttack(name: String):[Pokemon]
   }
 
   type pokeWeight {
@@ -39,6 +59,21 @@ const schema = buildSchema(`
     name: String
   }
 
+  type pokeEvolutions{
+    id: Int
+    name: String
+  }
+
+  type pokeAttacks{
+    fast: [attributesOfAttack]
+    special: [attributesOfAttack]
+  }
+
+  type attributesOfAttack{
+    name: String
+    type: String
+    damage: Int
+  }
 `);
 
 // The root provides the resolver functions for each type of query or mutation.
@@ -46,8 +81,50 @@ const root = {
   Pokemons: () => {
     return data.pokemon;
   },
+  Types: () => {
+    return data.types;
+  },
+  Attacks: () => {
+    return data.attacks;
+  },
+  Attack: (request) => {
+    if (request.type === "fast") return data.attacks.fast;
+    if (request.type === "special") return data.attacks.special;
+  },
+  Type: (request) => {
+    const tmp = { Pokemon: "" };
+    tmp.Pokemon = data.pokemon.filter((pokemon) => {
+      return pokemon.types.some((type) => {
+        return type === request.type;
+      });
+    });
+    return tmp;
+  },
+
+  GetAttack: (request) => {
+    const attackObject = { Pokemon: "" };
+    attackObject.Pokemon = data.pokemon.filter((pokemon) => {
+      const allAttacks = pokemon.attacks.fast.concat(pokemon.attacks.special);
+      return allAttacks.some((attack) => {
+        return attack.name === request.name;
+      });
+    });
+    return attackObject;
+  },
+
+  // retrieve all data from attacks
+  // we want to return attacks field
+  // also we want to put pokemon data into attacks field
+  // attack name
+
   Pokemon: (request) => {
-    return data.pokemon.find((pokemon) => pokemon.name === request.name);
+    return data.pokemon.find((pokemon) => {
+      //if request is a name --> return pokemon.name
+      // if it's a number --> return pokemon.id
+      return isNaN(parseInt(request))
+        ? pokemon.id === request.id
+        : pokemon.name === request.name;
+    });
   },
 };
 
