@@ -9,11 +9,36 @@ const schema = buildSchema(`
   type Pokemon {
     id: String
     name: String!
+    classification: String!
+    types: [String]
+    resistant: [String]
+    weaknesses: [String]
+    weight: pokeWeight
+    height: pokeHeight
+    fleeRate: Float
+    evolutionRequirements: pokeEvolutionRequirements
   }
+  
   type Query {
     Pokemons: [Pokemon]
     Pokemon(name: String!): Pokemon
   }
+
+  type pokeWeight {
+    minimum: String
+    maximum: String
+  }
+
+  type pokeHeight {
+    minimum: String
+    maximum: String
+  }
+
+  type pokeEvolutionRequirements {
+    amount: Int
+    name: String
+  }
+
 `);
 
 // The root provides the resolver functions for each type of query or mutation.
