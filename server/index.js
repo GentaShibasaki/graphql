@@ -46,14 +46,57 @@ const schema = buildSchema(`
 
   type Mutation {
     createType(newType: String!): [String]
-    createNewAttack(type: String!, name: String!, type: String!, damage: Int): [String]
+    createNewAttack(typeOfAttack: String!, name: String!, type: String!, damage: Int): [NewAttackInformation]
+    createNewPokemon(
+      id: String
+      name: String
+      classification: String
+      types:[String]
+      resistant:[String]
+      weaknesses:[String]
+      weight:newPokeWeight
+      height:newPokeHeight
+      fleeRate: Float
+      evolutionRequirements:newEvolutionRequirements
+      evolutions:[newEvolutions]
+      maxCP: Int
+      maxHP: Int
+      attacks: newAttacks
+    ):[Pokemon]
   }
 
-  type newAttack {
-    type: String 
-    data: NewAttackInformation
+  input newAttacks{
+    fast:[newFast]
+    special:[newSpecial]
   }
-  
+  input newFast{
+    name: String
+    type: String
+    damage: Int
+  }
+
+  input newSpecial{
+    name: String
+    type: String
+    damage: Int
+  }
+  input newEvolutions{
+    id: Int
+    name:String
+  }
+
+  input newEvolutionRequirements{
+    amount: Int
+    name:String
+  }
+  input newPokeWeight{
+    minimum: String
+    maximum: String
+  }
+  input newPokeHeight{
+    minimum: String
+    maximum: String
+  }
   type NewAttackInformation{
     name: String
     type: String
@@ -71,6 +114,7 @@ const schema = buildSchema(`
     minimum: String
     maximum: String
   }
+
 
   type pokeHeight {
     minimum: String
@@ -164,6 +208,45 @@ const root = {
   createType: (request) => {
     data.types.push(request.newType);
     return data.types;
+  },
+
+  createNewAttack: (request) => {
+    const newObject = {
+      name: request.name,
+      type: request.type,
+      damage: request.damage,
+    };
+
+    if (request.typeOfAttack === "fast") {
+      data.attacks.fast.push(newObject);
+      return data.attacks.fast;
+    } else if (request.typeOfAttack === "special") {
+      data.attacks.special.push(newObject);
+      return data.attacks.special;
+    }
+  },
+
+  createNewPokemon: (request) => {
+    const pokemonObject = {
+      id: request.id,
+      name: request.name,
+      classification: request.classification,
+      types: request.types,
+      resistant: request.resistant,
+      weaknesses: request.weaknesses,
+      weight: request.weight,
+      height: request.height,
+      fleeRate: request.fleeRate,
+      evolutionRequirements: request.evolutionRequirements,
+      evolutions: request.evolutions,
+      maxCP: request.maxCP,
+      maxHP: request.maxHP,
+      attacks: request.attacks,
+    };
+
+    data.pokemon.push(pokemonObject);
+
+    return data.pokemon;
   },
 };
 
