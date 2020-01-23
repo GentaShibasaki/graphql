@@ -41,7 +41,30 @@ const schema = buildSchema(`
     Pokemon(name: String,id: String): Pokemon
     Attack(type: String): [attributesOfAttack]
     Type(type: String):data
-    GetAttack(name: String):[Pokemon]
+    GetAttack(name: String):GetAttack
+  }
+
+  type Mutation {
+    createType(newType: String!): [String]
+    createNewAttack(type: String!, name: String!, type: String!, damage: Int): [String]
+  }
+
+  type newAttack {
+    type: String 
+    data: NewAttackInformation
+  }
+  
+  type NewAttackInformation{
+    name: String
+    type: String
+    damage: Int
+  }
+  
+  type GetAttack {
+    name: String
+    type: String
+    damage: Int
+    Pokemon: [Pokemon]
   }
 
   type pokeWeight {
@@ -102,14 +125,25 @@ const root = {
   },
 
   GetAttack: (request) => {
-    const attackObject = { Pokemon: "" };
-    attackObject.Pokemon = data.pokemon.filter((pokemon) => {
+    let returnOb = { name: "", type: "", damage: 0, Pokemon: [] };
+
+    const [tempArray] = data.attacks.fast
+      .concat(data.attacks.special)
+      .filter((attacks) => {
+        return attacks.name === request.name;
+      });
+
+    returnOb.name = tempArray.name;
+    returnOb.type = tempArray.type;
+    returnOb.damage = tempArray.damage;
+
+    returnOb.Pokemon = data.pokemon.filter((pokemon) => {
       const allAttacks = pokemon.attacks.fast.concat(pokemon.attacks.special);
       return allAttacks.some((attack) => {
         return attack.name === request.name;
       });
     });
-    return attackObject;
+    return returnOb;
   },
 
   // retrieve all data from attacks
@@ -125,6 +159,11 @@ const root = {
         ? pokemon.id === request.id
         : pokemon.name === request.name;
     });
+  },
+
+  createType: (request) => {
+    data.types.push(request.newType);
+    return data.types;
   },
 };
 
